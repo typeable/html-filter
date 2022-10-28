@@ -1,0 +1,4 @@
+# DTT-HTML-Filter
+
+This is a controlled way of restricting html to some specific set of tags.
+Besides of escaping unknown tags it can also log which tags it encounters.

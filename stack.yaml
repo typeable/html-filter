@@ -1,0 +1,9 @@
+packages:
+- .
+
+extra-deps:
+- html-parse-0.2.0.2@sha256:44e50a95b4d1d0aedd8b3c113535fbf2f6d4d08edfb5385e27ca84de6e24a0e3,3946
+
+resolver: lts-19.02
+# Put installed binaries into ./bin instead of $HOME/.local/bin
+local-bin-path: bin
