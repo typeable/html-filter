@@ -5,10 +5,10 @@ module Text.Html.Filter
   )where
 
 import Text.HTML.Parser
-import Data.Set qualified as Set
+import qualified Data.Set as Set
 import Data.Set (Set)
-import Data.Text qualified
-import Data.Text.Lazy qualified
+import qualified Data.Text
+import qualified Data.Text.Lazy
 import Data.List (partition)
 import Data.Bifunctor (bimap)
 import Data.Text (Text)
