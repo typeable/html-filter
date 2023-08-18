@@ -1,5 +1,6 @@
 module Text.Html.Filter
-  ( filterTags
+  ( filterHtml
+  , filterTags
   , Attr(..)
   , noAttributes
   )where
@@ -14,20 +15,36 @@ import Data.Bifunctor (bimap)
 import Data.Text (Text)
 
 
+-- | Drop any attributes
 noAttributes :: (Text,Attr) -> Bool
 noAttributes = const False
 
--- | Filter out html tags. You can supply set of permitted tags and a predicate for accepting attributes.
--- Any non-permitted tags will escaped into plain text while comments and doctype declarations are
+-- | 'filterHtml' by list of allowed tags.
+filterTags
+  :: Set Text
+  -- ^ Set of allowed tags
+  -> ((Text,Attr) -> Bool)
+  -> Text
+  -> (Data.Text.Lazy.Text, Set (Text,[Attr]))
+filterTags tags = filterHtml (`Set.member` tags)
+
+-- | Filter out html tags. You can supply predicate to test permitted tags and a predicate for accepting attributes.
+-- Any non-permitted tags will be escaped into plain text while comments and doctype declarations are
 -- removed.
 --
 -- Returns the new html and set of tags and attributes that were discarded / escaped.
-filterTags :: Set Text -> ((Text,Attr) -> Bool) -> Text -> (Data.Text.Lazy.Text, Set (Text,[Attr]))
-filterTags permittedTags permittedAttributes rawHtml = let
+filterHtml
+  :: (Text -> Bool)
+  -- ^ Tag predicate
+  -> ((Text,Attr) -> Bool)
+  -- ^ Attribute predicate
+  -> Text
+  -- ^ Raw HTML
+  -> (Data.Text.Lazy.Text, Set (Text,[Attr]))
+filterHtml permittedTags permittedAttributes rawHtml = let
   (discards, tokens) = unzip . map rewrite . canonicalizeTokens . parseTokens $ rawHtml
   in (renderTokens tokens, mconcat discards)
   where
-    check name = name `Set.member` permittedTags
     encodeHtml = Data.Text.concatMap \case
       '>' -> "&gt;"
       '<' -> "&lt;"
@@ -43,20 +60,19 @@ filterTags permittedTags permittedAttributes rawHtml = let
     asEscapedText = ContentText . encodeHtml . Data.Text.Lazy.toStrict . renderToken
     rewrite = \case
       t@(TagOpen name attrs)
-        | check name
+        | permittedTags name
         , (goodAttrs, badAttrs) <- filterAttrs name attrs
         -> (recordAttrs name badAttrs, TagOpen name goodAttrs)
         | otherwise -> (record name attrs, asEscapedText t)
       t@(TagSelfClose name attrs)
-        | check name
+        | permittedTags name
         , (goodAttrs, badAttrs) <- filterAttrs name attrs
         -> (recordAttrs name badAttrs, TagSelfClose name goodAttrs)
         | otherwise -> (record name attrs, asEscapedText t)
       t@(TagClose name)
-        | check name -> (mempty, t)
+        | permittedTags name -> (mempty, t)
         | otherwise -> (record name [], asEscapedText t)
       Comment _ -> (mempty, ContentText "")
       Doctype _ -> (mempty, ContentText "")
       t@ContentText{} -> (mempty, t)
       t@ContentChar{} -> (mempty, t)
-
