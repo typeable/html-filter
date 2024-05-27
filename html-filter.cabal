@@ -40,7 +40,6 @@ library
     FunctionalDependencies
     GADTs
     GeneralizedNewtypeDeriving
-    ImportQualifiedPost
     InstanceSigs
     KindSignatures
     LambdaCase
@@ -52,7 +51,6 @@ library
     OverloadedStrings
     PartialTypeSignatures
     PatternSynonyms
-    ImportQualifiedPost
     PolyKinds
     QuasiQuotes
     RankNTypes
@@ -71,5 +69,3 @@ library
     -Wall -Wcompat -Wincomplete-record-updates
     -Wincomplete-uni-patterns -funbox-strict-fields -Wunused-packages
     -Wmissing-deriving-strategies -Wno-partial-type-signatures
-    -Wprepositive-qualified-module
-
